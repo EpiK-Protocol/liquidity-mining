@@ -11,7 +11,7 @@ contract EPKFarm is Ownable {
     IERC20 private EPK_LP_TOKEN = IERC20(address(0));
     IERC20 private EPK_TOKEN = IERC20(address(0));
 
-    uint256 private constant RACE_DECIMALS = 10000;
+    uint256 private constant RACE_DECIMALS = 1e12;
 
     uint256 public globalEPKBalance;
     uint256 public blockReward;
@@ -21,7 +21,7 @@ contract EPKFarm is Ownable {
     uint256 private latestSettledRate;
 
     event Harvest(address to, uint256 amount);
-    event IncreaseJackpot(address from, uint256 amount);
+    event IncreaseJackpot(uint256 amount, uint256 endBlock);
     event Stake(address from, uint256 amount);
     event Unstake(address from, uint256 amount);
 
@@ -33,6 +33,14 @@ contract EPKFarm is Ownable {
     mapping(address => Account) accStacks;
 
     constructor(address _epkContract, address _epkLPContract) {
+        require(
+            _epkContract != address(0),
+            "_epkContract can not be zero address"
+        );
+        require(
+            _epkLPContract != address(0),
+            "_epkLPContract can not be zero address"
+        );
         EPK_TOKEN = IERC20(_epkContract);
         EPK_LP_TOKEN = IERC20(_epkLPContract);
     }
@@ -67,10 +75,10 @@ contract EPKFarm is Ownable {
             SafeMath.sub(endBlock, block.number)
         );
         _refreshGlobalRate(globalLPBalance, _newBlockReward);
-        emit IncreaseJackpot(msg.sender, _amount);
+        emit IncreaseJackpot(_amount, _endBlock);
     }
 
-    function stake(uint256 _amount) public payable {
+    function stake(uint256 _amount) public {
         require(_amount > 0, "_amount should be positive");
         require(endBlock > block.number, "farm over");
         SafeERC20.safeTransferFrom(
@@ -88,7 +96,7 @@ contract EPKFarm is Ownable {
         emit Stake(msg.sender, _amount);
     }
 
-    function unstake() public payable {
+    function unstake() public {
         Account storage _acc = accStacks[msg.sender];
         require(_acc.lpBalance > 0, "lp out of balance");
         _harvest(_acc);
@@ -99,7 +107,7 @@ contract EPKFarm is Ownable {
         _refreshGlobalRate(_newLPBalance, blockReward);
     }
 
-    function harvest() public payable {
+    function harvest() public {
         Account storage _acc = accStacks[msg.sender];
         require(_acc.lpBalance > 0, "lp out of balance");
         _harvest(_acc);
@@ -184,9 +192,12 @@ contract EPKFarm is Ownable {
         if (_end <= _start || _lpBalance <= 0) {
             return 0;
         }
-        _race = SafeMath.mul(
-            SafeMath.sub(_end, _start),
-            SafeMath.div(SafeMath.mul(_blockReward, RACE_DECIMALS), _lpBalance)
+        _race = SafeMath.div(
+            SafeMath.mul(
+                SafeMath.sub(_end, _start),
+                SafeMath.mul(_blockReward, RACE_DECIMALS)
+            ),
+            _lpBalance
         );
     }
 }
