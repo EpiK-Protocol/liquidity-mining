@@ -5,7 +5,7 @@ const ERC20PresetMinterPauser = artifacts.require("ERC20PresetMinterPauser");
 const DECIMAL18 = new BigNumber('1000000000000000000');
 
 contract("EPKFarm test", async accounts => {
-    const TotalEPK = 1000;
+    const TotalEPK = 10000;
     const LP = [100, 100];
     var farm, epk, lp;
     it("init contracts", async () => {
@@ -187,6 +187,98 @@ contract("EPKFarm test", async accounts => {
 
         assert.equal(0, fromDec18(await farm.lpStaked(account)), "account[0]'s lp balance error");
         assert.equal(Number(lpBalance) - amount, fromDec18(await farm.globalLPBalance()), "farm lp balance error");
+    });
+
+    it("accounts[1] stake again", async () => {
+        var amount = 10;
+        var account = accounts[1];
+        var lpBalance = fromDec18(await farm.globalLPBalance());
+        await farm.stake(toDec18(amount), { from: account });
+        console.log("blockNumber:           ", (await web3.eth.getBlockNumber()));
+        console.log("farm.globalEPKBalance: ", fromDec18((await farm.globalEPKBalance()).toString()));
+        console.log("farm.globalLPBalance:  ", fromDec18((await farm.globalLPBalance()).toString()));
+        console.log("farm.blockReward:      ", fromDec18((await farm.blockReward()).toString()));
+        console.log("farm.endBlock:         ", (await farm.endBlock()).toString());
+
+        assert.equal(amount, fromDec18(await farm.lpStaked(account)), "account[0]'s lp balance error");
+        assert.equal(amount + Number(lpBalance), fromDec18(await farm.globalLPBalance()), "farm lp balance error");
+    });
+
+    it("skip 100 blocks...", async () => {
+        for (var i = 0; i < 100; i++) {
+            await epk.transfer(accounts[0], 1, { from: accounts[0] });
+        }
+        console.log("blockNumber:   ", (await web3.eth.getBlockNumber()));
+    });
+    it("accounts[1] reward balance", async () => {
+        console.log("blockNumber:           ", (await web3.eth.getBlockNumber()));
+        console.log("farm.globalEPKBalance: ", fromDec18((await farm.globalEPKBalance()).toString()));
+        console.log("farm.globalLPBalance:  ", fromDec18((await farm.globalLPBalance()).toString()));
+        console.log("farm.blockReward:      ", fromDec18((await farm.blockReward()).toString()));
+        console.log("farm.endBlock:         ", (await farm.endBlock()).toString());
+        console.log("farm.rewardBalanceOf:  ", (await farm.rewardBalanceOf(accounts[1])).toString());
+
+    });
+    it("increase jackpot again", async () => {
+        var amount = 800;
+        var blocks = 100;
+        var blockNumber = (await web3.eth.getBlockNumber()) + 1;
+        var globalEPKBalance = fromDec18((await farm.globalEPKBalance()));
+        var blockReward = 0;
+        await farm.increaseJackpot(toDec18(amount), blocks + blockNumber);
+
+        console.log("blockNumber:           ", (await web3.eth.getBlockNumber()));
+        console.log("farm.globalEPKBalance: ", fromDec18((await farm.globalEPKBalance()).toString()));
+        console.log("farm.globalLPBalance:  ", fromDec18((await farm.globalLPBalance()).toString()));
+        console.log("farm.blockReward:      ", fromDec18((await farm.blockReward()).toString()));
+        console.log("farm.endBlock:         ", (await farm.endBlock()).toString());
+
+        assert.equal(blockNumber + blocks, (await farm.endBlock()), "block number error");
+        assert.equal(Number(globalEPKBalance) + amount, fromDec18((await farm.globalEPKBalance())), "epk balance error");
+    });
+
+    it("accounts[1] reward balance", async () => {
+        console.log("blockNumber:           ", (await web3.eth.getBlockNumber()));
+        console.log("farm.globalEPKBalance: ", fromDec18((await farm.globalEPKBalance()).toString()));
+        console.log("farm.globalLPBalance:  ", fromDec18((await farm.globalLPBalance()).toString()));
+        console.log("farm.blockReward:      ", fromDec18((await farm.blockReward()).toString()));
+        console.log("farm.endBlock:         ", (await farm.endBlock()).toString());
+        console.log("farm.rewardBalanceOf:  ", (await farm.rewardBalanceOf(accounts[1])).toString());
+
+    });
+
+    it("skip 10 blocks...", async () => {
+        for (var i = 0; i < 10; i++) {
+            await epk.transfer(accounts[0], 1, { from: accounts[0] });
+        }
+        console.log("blockNumber:   ", (await web3.eth.getBlockNumber()));
+    });
+
+    it("accounts[1] reward balance", async () => {
+        console.log("blockNumber:           ", (await web3.eth.getBlockNumber()));
+        console.log("farm.globalEPKBalance: ", fromDec18((await farm.globalEPKBalance()).toString()));
+        console.log("farm.globalLPBalance:  ", fromDec18((await farm.globalLPBalance()).toString()));
+        console.log("farm.blockReward:      ", fromDec18((await farm.blockReward()).toString()));
+        console.log("farm.endBlock:         ", (await farm.endBlock()).toString());
+        console.log("farm.rewardBalanceOf:  ", (await farm.rewardBalanceOf(accounts[1])).toString());
+
+    });
+
+    it("skip 100 blocks...", async () => {
+        for (var i = 0; i < 100; i++) {
+            await epk.transfer(accounts[0], 1, { from: accounts[0] });
+        }
+        console.log("blockNumber:   ", (await web3.eth.getBlockNumber()));
+    });
+
+    it("accounts[1] reward balance", async () => {
+        console.log("blockNumber:           ", (await web3.eth.getBlockNumber()));
+        console.log("farm.globalEPKBalance: ", fromDec18((await farm.globalEPKBalance()).toString()));
+        console.log("farm.globalLPBalance:  ", fromDec18((await farm.globalLPBalance()).toString()));
+        console.log("farm.blockReward:      ", fromDec18((await farm.blockReward()).toString()));
+        console.log("farm.endBlock:         ", (await farm.endBlock()).toString());
+        console.log("farm.rewardBalanceOf:  ", (await farm.rewardBalanceOf(accounts[1])).toString());
+
     });
 
 });

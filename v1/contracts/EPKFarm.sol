@@ -68,13 +68,13 @@ contract EPKFarm is Ownable {
             );
         }
         _balance = SafeMath.add(_balance, _amount);
-        endBlock = _endBlock;
         globalEPKBalance = SafeMath.add(globalEPKBalance, _amount);
         uint256 _newBlockReward = SafeMath.div(
             _balance,
-            SafeMath.sub(endBlock, block.number)
+            SafeMath.sub(_endBlock, block.number)
         );
         _refreshGlobalRate(globalLPBalance, _newBlockReward);
+        endBlock = _endBlock;
         emit IncreaseJackpot(_amount, _endBlock);
     }
 
